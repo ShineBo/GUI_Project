@@ -15,7 +15,7 @@ public class Booking {
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.isBookingActive = false;
-        room.setRoomAvailable(true);
+        room.setRoomAvailable(false);
     }
 
     // Getters and Setters

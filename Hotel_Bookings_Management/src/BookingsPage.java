@@ -25,8 +25,6 @@ public class BookingsPage extends JFrame implements ActionListener {
     private JComboBox<String> roomComboBox;
     private JTextField checkInDateField;
     private JTextField checkOutDateField;
-    private JButton activeButton;
-    private JButton cancelButton;
 
     public BookingsPage() {
         bookingList = new ArrayList<>();
@@ -88,10 +86,9 @@ public class BookingsPage extends JFrame implements ActionListener {
         panelSearch.add(searchTextField);
         panelSearch.add(searchBtn);
         panelSearch.setBackground(new Color(210, 244, 251));
-        add(panelSearch);
     
         currentBookingsPanel = new JPanel(new BorderLayout());
-        String[] columnNames = {"Booking ID", "Guest Name", "Room", "Check-In", "Check-Out", "Active"};
+        String[] columnNames = {"Booking ID", "Guest Name", "Room", "Check-In", "Check-Out"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -107,17 +104,7 @@ public class BookingsPage extends JFrame implements ActionListener {
     
         loadBookingData(bookingList);
     
-        JPanel buttonsPanel = new JPanel(new FlowLayout());
-        activeButton = new JButton("Mark as Active");
-        cancelButton = new JButton("Mark as Canceled");
-    
-        activeButton.addActionListener(this);
-        cancelButton.addActionListener(this);
-    
-        buttonsPanel.add(activeButton);
-        buttonsPanel.add(cancelButton);
-    
-        currentBookingsPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        // Remove buttons related to active/cancel actions
     }
 
     private void createAddBookingPanel() {
@@ -186,31 +173,15 @@ public class BookingsPage extends JFrame implements ActionListener {
                     booking.getGuestName(),
                     booking.getRoom().getRoomType() + " (Room " + booking.getRoom().getRoomNumber() + ")",
                     checkInDate,
-                    checkOutDate,
-                    booking.isBookingActive() ? "Yes" : "No"
-            };
-            tableModel.addRow(rowData);
-        }
-    }
-
-    public static void loadRoomData(ArrayList<Room> rooms) {
-        tableModel.setRowCount(0);
-    
-        for (Room room : rooms) {
-            String[] rowData = {
-                    String.valueOf(room.getRoomNumber()),
-                    String.valueOf(room.getRoomFloor()),
-                    room.getRoomType(),
-                    room.isRoomAvailable() ? "Yes" : "No",
-                    String.format("$%.2f", room.getRoomPrice())
+                    checkOutDate
             };
             tableModel.addRow(rowData);
         }
     }
 
     private void addSampleBookings() {
-        Room room1 = new StandardRoom(101, 1, false, 100.00);
-        Room room2 = new DeluxeRoom(201, 2, false, 200.00);
+        Room room1 = new StandardRoom(101, 1, true, 100.00); // Change to true for available
+        Room room2 = new DeluxeRoom(201, 2, true, 200.00); // Change to true for available
         bookingList.add(new Booking(1, room1, "John Doe", new Date(), new Date()));
         bookingList.add(new Booking(2, room2, "Jane Smith", new Date(), new Date()));
     }
@@ -219,14 +190,14 @@ public class BookingsPage extends JFrame implements ActionListener {
         String searchBooking = searchTextField.getText().toLowerCase();
         int found = 0;
         ArrayList<Booking> searchResultList = new ArrayList<>();
-        for(Booking booking : bookingList) {
-            if(booking.getGuestName().toLowerCase().contains(searchBooking)) {
+        for (Booking booking : bookingList) {
+            if (booking.getGuestName().toLowerCase().contains(searchBooking)) {
                 found += 1;
                 searchResultList.add(booking);
                 loadSearchData(searchResultList);
             }
         }
-        if(found == 0) {
+        if (found == 0) {
             JOptionPane.showMessageDialog(this, "Booking Not Found.");
         }
     }
@@ -242,55 +213,11 @@ public class BookingsPage extends JFrame implements ActionListener {
                     booking.getGuestName(),
                     booking.getRoom().getRoomType() + " (Room " + booking.getRoom().getRoomNumber() + ")",
                     checkInDate,
-                    checkOutDate,
-                    booking.isBookingActive() ? "Yes" : "No"
+                    checkOutDate
             };
             tableModel.addRow(rowData);
         }
     }
-
-    private void markBookingAsActive() {
-        int selectedRow = bookingTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            Booking selectedBooking = bookingList.get(selectedRow);
-    
-            if (!selectedBooking.isBookingActive()) {
-                selectedBooking.setBookingActive(true);
-                selectedBooking.getRoom().setRoomAvailable(false);
-                loadBookingData(bookingList);
-                JOptionPane.showMessageDialog(this, "Booking marked as active.");
-    
-                // Refresh the RoomsPage
-                RoomsPage.loadRoomData(RoomsPage.roomList);
-            } else {
-                JOptionPane.showMessageDialog(this, "Booking is already active.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Please select a booking to mark as active.");
-        }
-    }
-    
-    private void markBookingAsCanceled() {
-        int selectedRow = bookingTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            Booking selectedBooking = bookingList.get(selectedRow);
-    
-            if (selectedBooking.isBookingActive()) {
-                selectedBooking.setBookingActive(false);
-                selectedBooking.getRoom().setRoomAvailable(true);
-                loadBookingData(bookingList);
-                JOptionPane.showMessageDialog(this, "Booking marked as canceled.");
-    
-                // Refresh the RoomsPage
-                RoomsPage.loadRoomData(RoomsPage.roomList);
-            } else {
-                JOptionPane.showMessageDialog(this, "Booking is already canceled.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Please select a booking to mark as canceled.");
-        }
-    }
-
 
     private void addNewBooking() {
         try {
@@ -361,14 +288,6 @@ public class BookingsPage extends JFrame implements ActionListener {
     
             case "ADD_BOOKING":
                 addNewBooking();
-                break;
-
-            case "Mark as Active":
-                markBookingAsActive();
-                break;
-
-            case "Mark as Canceled":
-                markBookingAsCanceled();
                 break;
         }
     }
