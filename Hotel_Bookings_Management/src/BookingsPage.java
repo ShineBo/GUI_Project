@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -19,11 +20,13 @@ public class BookingsPage extends JFrame implements ActionListener {
     private JButton searchBtn;
 
     private JTable bookingTable;
-    private DefaultTableModel tableModel;
+    private static DefaultTableModel tableModel;
     private JTextField guestNameField, searchTextField;
     private JComboBox<String> roomComboBox;
     private JTextField checkInDateField;
     private JTextField checkOutDateField;
+    private JButton activeButton;
+    private JButton cancelButton;
 
     public BookingsPage() {
         bookingList = new ArrayList<>();
@@ -79,14 +82,14 @@ public class BookingsPage extends JFrame implements ActionListener {
         searchTextField = new JTextField(10);
         searchBtn = new JButton("Search");
         searchBtn.addActionListener(this);
-
+    
         panelSearch.setLayout(new FlowLayout());
         panelSearch.add(labelSearch);
         panelSearch.add(searchTextField);
         panelSearch.add(searchBtn);
         panelSearch.setBackground(new Color(210, 244, 251));
         add(panelSearch);
-
+    
         currentBookingsPanel = new JPanel(new BorderLayout());
         String[] columnNames = {"Booking ID", "Guest Name", "Room", "Check-In", "Check-Out", "Active"};
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -98,11 +101,23 @@ public class BookingsPage extends JFrame implements ActionListener {
         bookingTable = new JTable(tableModel);
         bookingTable.setRowHeight(30);
         bookingTable.setBackground(new Color(254, 249, 217));
-
+    
         JScrollPane scrollPane = new JScrollPane(bookingTable);
         currentBookingsPanel.add(scrollPane, BorderLayout.CENTER);
-
+    
         loadBookingData(bookingList);
+    
+        JPanel buttonsPanel = new JPanel(new FlowLayout());
+        activeButton = new JButton("Mark as Active");
+        cancelButton = new JButton("Mark as Canceled");
+    
+        activeButton.addActionListener(this);
+        cancelButton.addActionListener(this);
+    
+        buttonsPanel.add(activeButton);
+        buttonsPanel.add(cancelButton);
+    
+        currentBookingsPanel.add(buttonsPanel, BorderLayout.SOUTH);
     }
 
     private void createAddBookingPanel() {
@@ -161,15 +176,33 @@ public class BookingsPage extends JFrame implements ActionListener {
     }
 
     private void loadBookingData(ArrayList<Booking> bookings) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         tableModel.setRowCount(0);
         for (Booking booking : bookings) {
+            String checkInDate = dateFormat.format(booking.getCheckInDate());
+            String checkOutDate = dateFormat.format(booking.getCheckOutDate());
             String[] rowData = {
                     String.valueOf(booking.getBookingID()),
                     booking.getGuestName(),
                     booking.getRoom().getRoomType() + " (Room " + booking.getRoom().getRoomNumber() + ")",
-                    booking.getCheckInDate().toString(),
-                    booking.getCheckOutDate().toString(),
+                    checkInDate,
+                    checkOutDate,
                     booking.isBookingActive() ? "Yes" : "No"
+            };
+            tableModel.addRow(rowData);
+        }
+    }
+
+    public static void loadRoomData(ArrayList<Room> rooms) {
+        tableModel.setRowCount(0);
+    
+        for (Room room : rooms) {
+            String[] rowData = {
+                    String.valueOf(room.getRoomNumber()),
+                    String.valueOf(room.getRoomFloor()),
+                    room.getRoomType(),
+                    room.isRoomAvailable() ? "Yes" : "No",
+                    String.format("$%.2f", room.getRoomPrice())
             };
             tableModel.addRow(rowData);
         }
@@ -199,17 +232,106 @@ public class BookingsPage extends JFrame implements ActionListener {
     }
 
     private void loadSearchData(ArrayList<Booking> searchResultList) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         tableModel.setRowCount(0);
         for (Booking booking : searchResultList) {
+            String checkInDate = dateFormat.format(booking.getCheckInDate());
+            String checkOutDate = dateFormat.format(booking.getCheckOutDate());
             String[] rowData = {
                     String.valueOf(booking.getBookingID()),
                     booking.getGuestName(),
                     booking.getRoom().getRoomType() + " (Room " + booking.getRoom().getRoomNumber() + ")",
-                    booking.getCheckInDate().toString(),
-                    booking.getCheckOutDate().toString(),
+                    checkInDate,
+                    checkOutDate,
                     booking.isBookingActive() ? "Yes" : "No"
             };
             tableModel.addRow(rowData);
+        }
+    }
+
+    private void markBookingAsActive() {
+        int selectedRow = bookingTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            Booking selectedBooking = bookingList.get(selectedRow);
+    
+            if (!selectedBooking.isBookingActive()) {
+                selectedBooking.setBookingActive(true);
+                selectedBooking.getRoom().setRoomAvailable(false);
+                loadBookingData(bookingList);
+                JOptionPane.showMessageDialog(this, "Booking marked as active.");
+    
+                // Refresh the RoomsPage
+                RoomsPage.loadRoomData(RoomsPage.roomList);
+            } else {
+                JOptionPane.showMessageDialog(this, "Booking is already active.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a booking to mark as active.");
+        }
+    }
+    
+    private void markBookingAsCanceled() {
+        int selectedRow = bookingTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            Booking selectedBooking = bookingList.get(selectedRow);
+    
+            if (selectedBooking.isBookingActive()) {
+                selectedBooking.setBookingActive(false);
+                selectedBooking.getRoom().setRoomAvailable(true);
+                loadBookingData(bookingList);
+                JOptionPane.showMessageDialog(this, "Booking marked as canceled.");
+    
+                // Refresh the RoomsPage
+                RoomsPage.loadRoomData(RoomsPage.roomList);
+            } else {
+                JOptionPane.showMessageDialog(this, "Booking is already canceled.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a booking to mark as canceled.");
+        }
+    }
+
+
+    private void addNewBooking() {
+        try {
+            String guestName = guestNameField.getText();
+            if (guestName.isEmpty()) {
+                throw new IllegalArgumentException("Guest name cannot be empty.");
+            }
+
+            int roomIndex = roomComboBox.getSelectedIndex();
+            if (roomIndex < 0) {
+                throw new NoSuchElementException("No available rooms selected.");
+            }
+            Room selectedRoom = roomList.get(roomIndex);
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date checkInDate = dateFormat.parse(checkInDateField.getText());
+            Date checkOutDate = dateFormat.parse(checkOutDateField.getText());
+
+            if (checkInDate.after(checkOutDate)) {
+                throw new IllegalArgumentException("Check-Out date cannot be before Check-In date.");
+            }
+
+            Booking newBooking = new Booking(bookingList.size() + 1, selectedRoom, guestName, checkInDate, checkOutDate);
+            bookingList.add(newBooking);
+
+            guestNameField.setText("");
+            checkInDateField.setText("");
+            checkOutDateField.setText("");
+
+            loadBookingData(bookingList);
+            cardLayout.show(getContentPane(), "CURRENT_BOOKINGS");
+            JOptionPane.showMessageDialog(this, "Added New Booking Successfully.");
+
+        } catch (ParseException parseException) {
+            JOptionPane.showMessageDialog(this, "Please enter valid dates in the format yyyy-MM-dd", "Invalid Date", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            JOptionPane.showMessageDialog(this, illegalArgumentException.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NoSuchElementException noSuchElementException) {
+            JOptionPane.showMessageDialog(this, noSuchElementException.getMessage(), "Room Selection Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception exception) {
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -238,29 +360,15 @@ public class BookingsPage extends JFrame implements ActionListener {
                 break;
     
             case "ADD_BOOKING":
-                String guestName = guestNameField.getText();
-                int roomIndex = roomComboBox.getSelectedIndex();
-                Room selectedRoom = roomList.get(roomIndex);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date checkInDate = null;
-                Date checkOutDate = null;
-                try {
-                    checkInDate = dateFormat.parse(checkInDateField.getText());
-                    checkOutDate = dateFormat.parse(checkOutDateField.getText());
-                } catch (ParseException parseException) {
-                    JOptionPane.showMessageDialog(this, "Please enter valid dates in the format yyyy-MM-dd", "Invalid Date", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Booking newBooking = new Booking(bookingList.size() + 1, selectedRoom, guestName, checkInDate, checkOutDate);
-                bookingList.add(newBooking);
+                addNewBooking();
+                break;
 
-                guestNameField.setText("");
-                checkInDateField.setText("");
-                checkOutDateField.setText("");
+            case "Mark as Active":
+                markBookingAsActive();
+                break;
 
-                loadBookingData(bookingList);
-                cardLayout.show(getContentPane(), "CURRENT_BOOKINGS");
-                JOptionPane.showMessageDialog(this, "Added New Booking Successfully.");
+            case "Mark as Canceled":
+                markBookingAsCanceled();
                 break;
         }
     }

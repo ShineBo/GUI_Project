@@ -1,12 +1,12 @@
 import java.util.Date;
 
 public class Booking {
-    int bookingID;
-    Room room;
-    String guestName;
-    Date checkInDate;
-    Date checkOutDate;
-    boolean isBookingActive;
+    private int bookingID;
+    private Room room;
+    private String guestName;
+    private Date checkInDate;
+    private Date checkOutDate;
+    private boolean isBookingActive;
 
     public Booking(int bookingID, Room room, String guestName, Date checkInDate, Date checkOutDate) {
         this.bookingID = bookingID;
@@ -14,10 +14,11 @@ public class Booking {
         this.guestName = guestName;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
-        this.isBookingActive = true;
-        room.setRoomAvailable(false);
+        this.isBookingActive = false;
+        room.setRoomAvailable(true);
     }
 
+    // Getters and Setters
     public int getBookingID() {
         return bookingID;
     }
@@ -66,16 +67,19 @@ public class Booking {
         this.isBookingActive = isBookingActive;
     }
 
+    // Editing booking details
     public void editBooking(Date newCheckIn, Date newCheckOut) {
         this.checkInDate = newCheckIn;
         this.checkOutDate = newCheckOut;
     }
 
+    // Canceling a booking
     public void cancelBooking() {
         this.isBookingActive = false;
-        this.room.setRoomAvailable(true);
+        this.room.setRoomAvailable(true); // Make room available again
     }
 
+    // Display booking info
     public void displayBookingInfo() {
         System.out.println("Booking ID: " + bookingID);
         System.out.println("Guest Name: " + guestName);

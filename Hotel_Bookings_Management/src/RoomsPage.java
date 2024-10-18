@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class RoomsPage extends JFrame implements ActionListener {
     private JTable roomTable;
-    private DefaultTableModel tableModel;
+    private static DefaultTableModel tableModel;
     static ArrayList<Room> roomList = new ArrayList<>();
     private JMenu homeMenu, roomsMenu;
 
@@ -64,7 +64,7 @@ public class RoomsPage extends JFrame implements ActionListener {
         String[] columnNames = {"Room Number", "Room Floor", "Room Type", "Available", "Price"};
         tableModel = new DefaultTableModel(columnNames, 0);
         roomTable = new JTable(tableModel);
-        roomTable.setBackground(new Color(222, 229, 212));
+        roomTable.setBackground(new Color(254, 249, 217));
         roomTable.setRowHeight(30);
 
         JScrollPane scrollPane = new JScrollPane(roomTable);
@@ -76,7 +76,7 @@ public class RoomsPage extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    private void loadRoomData(ArrayList<Room> rooms) {
+    static void loadRoomData(ArrayList<Room> rooms) {
         tableModel.setRowCount(0);
 
         for (Room room : rooms) {

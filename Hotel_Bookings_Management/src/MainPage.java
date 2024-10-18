@@ -56,6 +56,10 @@ public class MainPage extends JFrame implements ActionListener{
             }
         });
 
+        roomsButton.setFocusPainted(false);
+        bookingsButton.setFocusPainted(false);
+        exitButton.setFocusPainted(false);
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(3, 1, 10, 20));
         buttonPanel.setBackground(new Color(254, 249, 217));
@@ -73,8 +77,8 @@ public class MainPage extends JFrame implements ActionListener{
 
     private void addSampleRooms() {
         RoomsPage.roomList.add(new StandardRoom(101, 1, true, 100.00));
-        RoomsPage.roomList.add(new DeluxeRoom(201, 2, false, 200.00));
-        RoomsPage.roomList.add(new StandardRoom(102, 1, false, 100.00));
+        RoomsPage.roomList.add(new DeluxeRoom(201, 2, true, 200.00));
+        RoomsPage.roomList.add(new StandardRoom(102, 1, true, 100.00));
         RoomsPage.roomList.add(new DeluxeRoom(202, 2, true, 200.00));
         RoomsPage.roomList.add(new StandardRoom(103, 1, true, 100.00));
     }

@@ -1,10 +1,11 @@
 public class Room {
-    int roomNumber;
-    int roomFloor;
-    String roomType;
-    boolean isRoomAvailable;
-    double roomPrice;
+    private int roomNumber;
+    private int roomFloor;
+    private String roomType;
+    private boolean isRoomAvailable;
+    private double roomPrice;
 
+    // Constructor
     public Room(int roomNumber, int roomFloor, String roomType, boolean isRoomAvailable, double roomPrice) {
         this.roomNumber = roomNumber;
         this.roomFloor = roomFloor;
@@ -54,6 +55,7 @@ public class Room {
         this.roomPrice = roomPrice;
     }
 
+    // Display room info
     public void displayRoomInfo() {
         System.out.println("Room Number: " + roomNumber);
         System.out.println("Room Floor: " + roomFloor);
@@ -64,17 +66,13 @@ public class Room {
 }
 
 class StandardRoom extends Room {
-
     public StandardRoom(int roomNumber, int roomFloor, boolean isRoomAvailable, double roomPrice) {
         super(roomNumber, roomFloor, "Standard", isRoomAvailable, roomPrice);
     }
-
 }
 
 class DeluxeRoom extends Room {
-
     public DeluxeRoom(int roomNumber, int roomFloor, boolean isRoomAvailable, double roomPrice) {
         super(roomNumber, roomFloor, "Deluxe", isRoomAvailable, roomPrice);
     }
-
 }
